@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Book & Game Exchange</title>
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#f0f6ff; color:#0a0a0a; transition: background 0.3s, color 0.3s; }
+    body.dark { background:#0a0a0a; color:#f0f6ff; }
+    nav { background:#0055ff; padding:18px; color:white; display:flex; justify-content:space-between; align-items:center; }
+    nav ul { list-style:none; display:flex; gap:25px; }
+    nav ul li { cursor:pointer; font-size:18px; }
+    nav ul li:hover { text-decoration:underline; }
+    header { text-align:center; padding:60px 20px; background:linear-gradient(#0055ff,#b3d1ff); color:white; }
+    .btn { padding:12px 20px; background:#ff3333; color:white; border:none; border-radius:6px; cursor:pointer; font-size:18px; }
+    .btn:hover { background:#cc0000; }
+    .container { width:90%; margin:auto; padding:40px 0; }
+    .section-title { font-size:28px; margin-bottom:20px; color:#003399; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(220px,1fr)); gap:25px; }
+    .card { background:white; padding:15px; border-radius:10px; box-shadow:0 4px 10px rgba(0,0,0,0.1); text-align:center; transition: transform 0.2s; }
+    .card:hover { transform: translateY(-5px); }
+    .card img { width:100%; height:160px; object-fit:cover; border-radius:8px; }
+    form { display:flex; flex-direction:column; gap:15px; }
+    input, select, textarea { padding:12px; border:2px solid #0055ff; border-radius:6px; font-size:16px; }
+    footer { background:#002266; color:white; text-align:center; padding:20px; margin-top:40px; }
+    .toggle-dark { background:#3333ff; margin-left:20px; padding:8px 12px; border-radius:6px; }
+    .toast { visibility:hidden; min-width:250px; margin-left:-125px; background-color:#333; color:#fff; text-align:center; border-radius:8px; padding:16px; position:fixed; z-index:1; left:50%; bottom:30px; font-size:17px; }
+    .toast.show { visibility:visible; animation:fadein 0.5s, fadeout 0.5s 2.5s; }
+    @keyframes fadein { from{bottom:0; opacity:0;} to{bottom:30px; opacity:1;} }
+    @keyframes fadeout { from{bottom:30px; opacity:1;} to{bottom:0; opacity:0;} }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>Book & Game Exchange</h1>
+  <ul>
+    <li onclick="navigate('home')">Home</li>
+    <li onclick="navigate('swap')">Swap</li>
+    <li onclick="navigate('browse')">Browse</li>
+    <li onclick="navigate('points')">Points</li>
+    <li onclick="navigate('profile')">Profile</li>
+    <li><button class="toggle-dark" onclick="toggleDarkMode()">Dark Mode</button></li>
+  </ul>
+</nav>
+
+<div id="home" class="page" style="display:block;">
+  <header>
+    <h2>Swap Your Books & Games</h2>
+    <p>Save money. Reduce waste. Help other students.</p>
+    <button class="btn" onclick="navigate('swap')">Start Swapping</button>
+  </header>
+</div>
+
+<div id="swap" class="page container" style="display:none;">
+  <h2 class="section-title">Swap an Item</h2>
+  <form onsubmit="addItem(event)">
+    <input type="text" placeholder="Item Name" required>
+    <select><option>Book</option><option>Game</option></select>
+    <input type="text" placeholder="Condition" required>
+    <textarea placeholder="Description"></textarea>
+    <button class="btn">Submit Item</button>
+  </form>
+</div>
+
+<div id="browse" class="page container" style="display:none;">
+  <h2 class="section-title">Available Items</h2>
+  <div class="grid" id="itemsGrid"></div>
+</div>
+
+<div id="points" class="page container" style="display:none;">
+  <h2 class="section-title">Your Points</h2>
+  <p style="font-size:20px;">You currently have <b style="color:#ff3333;" id="userPoints">0 points</b>.</p>
+  <p>Each swap earns you points you can use to get other items.</p>
+</div>
+
+<div id="profile" class="page container" style="display:none;">
+  <h2 class="section-title">Your Profile</h2>
+  <p>Name: Student User</p>
+  <p>Items Swapped: <span id="itemsCount">0</span></p>
+  <p>Joined: 2025</p>
+</div>
+
+<div id="toast" class="toast">Item Added!</div>
+
+<footer>
+  <p>© 2025 Book & Game Exchange • All Rights Reserved</p>
+</footer>
+
+<script>
+let points = 0;
+let items = [];
+
+function navigate(section){
+  document.querySelectorAll('.page').forEach(p => p.style.display='none');
+  document.getElementById(section).style.display='block';
+}
+
+function toggleDarkMode(){
+  document.body.classList.toggle('dark');
+}
+
+function showToast(msg){
+  const toast=document.getElementById('toast');
+  toast.textContent=msg;
+  toast.className='toast show';
+  setTimeout(()=>{toast.className='toast';},3000);
+}
+
+function addItem(e){
+  e.preventDefault();
+  const form=e.target;
+  const name=form[0].value;
+  const type=form[1].value;
+  const condition=form[2].value;
+  const desc=form[3].value;
+  const item={name,type,condition,desc};
+  items.push(item);
+  points += type==='Book'?1:2;
+  document.getElementById('userPoints').textContent=points+' points';
+  document.getElementById('itemsCount').textContent=items.length;
+  form.reset();
+  showToast('Item Added!');
+  renderItems();
+}
+
+function renderItems(){
+  const grid=document.getElementById('itemsGrid');
+  grid.innerHTML='';
+  items.forEach(i=>{
+    const card=document.createElement('div');
+    card.className='card';
+    card.innerHTML=`<h3>${i.name}</h3><p>Type: ${i.type}</p><p>Condition: ${i.condition}</p><p>${i.desc}</p><button class='btn' onclick='swapItem(${items.indexOf(i)})'>Swap</button>`;
+    grid.appendChild(card);
+  });
+}
+
+function swapItem(index){
+  points += 0; // for now, clicking swap could do more
+  showToast('Item Swapped!');
+  items.splice(index,1);
+  renderItems();
+  document.getElementById('itemsCount').textContent=items.length;
+}
+</script>
+
+</body>
+</html>
